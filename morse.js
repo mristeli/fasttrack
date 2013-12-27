@@ -34,13 +34,14 @@ var MORSE_CODE = {
 var morse = (function (coding, returnSignal) {
     function compileStateMachine(code) {
         var startNode = {};
-
-        function updateStates(node, letterEncoding) {
+	var invalidState = {};
+	invalidState[returnSignal] = startNode;
+	function updateStates(node, letterEncoding) {
             var letter = letterEncoding[0];
             var remainingCode = letterEncoding[1];
             node[returnSignal] = startNode;
             if (_.isEmpty(remainingCode)) {
-                node["value"] = letter;
+                node.value = letter;
             } else {
                 node[_.first(remainingCode)] = updateStates(_.extend({}, node[_.first(remainingCode)]), [letter, _.rest(remainingCode)]);
             }
@@ -50,9 +51,9 @@ var morse = (function (coding, returnSignal) {
     }
     return (function (state) {
         return function (signal) {
-            var value = state["value"]
-            state = state[signal];
-            if (signal === PAUSE) return value;
+	  var value = state.value;
+	  state = state[signal];
+	  if (signal === returnSignal) return value;
         }
-    })(compileStateMachine(coding))
+      })(compileStateMachine(coding))
 })(MORSE_CODE, PAUSE);
